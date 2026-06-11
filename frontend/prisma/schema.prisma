@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  username  String    @unique
+  password  String
+  storeName String?
+  role      String    @default("SELLER")
+  status    String    @default("active")
+  upiId     String?
+  expiresAt DateTime?
+  createdAt DateTime  @default(now())
+
+  products   Product[]
+  upiDetails UpiDetail[]
+  activities Activity[]
+  orders     Order[]
+}
+
+model Product {
+  id           String   @id
+  name         String
+  sellingPrice Float
+  mrp          Float
+  stock        Int      @default(0)
+  category     String?
+  description  String?
+  images       String   @default("[]")
+  delivery     String   @default("Free Delivery")
+  status       String   @default("active")
+  createdAt    DateTime @default(now())
+
+  seller   User @relation(fields: [sellerId], references: [id])
+  sellerId Int
+}
+
+model Order {
+  id              Int      @id @default(autoincrement())
+  orderId         String   @unique
+  customerName    String   @default("")
+  customerPhone   String   @default("")
+  customerEmail   String?
+  address         String?
+  items           String   @default("[]")
+  paymentMethod   String   @default("COD")
+  amount          Float    @default(0)
+  handlingCharge  Float    @default(0)
+  upiId           String?
+  bank            String?
+  upiApp          String?
+  status          String   @default("pending")
+  adminNote       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  seller   User  @relation(fields: [sellerId], references: [id])
+  sellerId Int
+
+  @@index([customerPhone])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model UpiDetail {
+  id        Int      @id @default(autoincrement())
+  upiId     String
+  trId      String?
+  createdAt DateTime @default(now())
+
+  seller   User @relation(fields: [sellerId], references: [id])
+  sellerId Int
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model Activity {
+  id        Int      @id @default(autoincrement())
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+}
+
+model Pincode {
+  pincode String @id
+  city    String
+  state   String
+}
